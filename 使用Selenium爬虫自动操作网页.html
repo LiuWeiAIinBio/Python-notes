@@ -1,0 +1,105 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>使用Selenium爬虫自动操作网页_基于python</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><pre><code>from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
+
+# 创建浏览器操作对象
+# selenium是4.11.2以上的版本，不需要设置chromedriver.exe的路径，selenium可以自己处理浏览器的驱动程序
+# chromedriver.exe放在python下面的D:\Python3.9\Lib\site-packages里面，放在其他地方会报错
+browser= webdriver.Chrome( # path)
+</code></pre>
+<ol>
+<li>
+<p>Selenium 用于web自动化测试，能模拟浏览器功能自动执行网页中的 JavaScript 代码，实现动态加载。</p>
+</li>
+<li>
+<p>selenium是有界面的，需要执行前端css和js的渲染，运行速度很慢。<br>
+无界面浏览器模式运行效率要比真实的浏览器快很多，代码与selenium一致。<br>
+上面的代码对应的是有界面模式。</p>
+</li>
+<li>
+<p><strong>如何定位网页内的元素：</strong><br>
+7种定位元素的方法，有时候有些方法会报错，可以试试另外几种方法。</p>
+</li>
+</ol>
+<pre><code>以百度首页【搜索框】html代码为例：
+&lt;input id="kw" name="wd" class="s_ipt" value="" maxlength="255" autocomplete="off"&gt;
+
+# 根据标签名获取元素：
+button = browser.find_element(By.TAG_NAME, 'input')
+
+# 根据 id 属性的值获取元素：
+button = browser.find_element(By.ID, 'kw')
+
+# 根据 name 属性的值获取元素：
+button = browser.find_element(By.NAME, 'wd')
+
+# 根据 class 属性获取元素：
+button = browser.find_element(By.CLASS_NAME, 's_ipt')
+
+# 根据 css 选择器获取元素：
+button = browser.find_element(By.CSS_SELECTOR, '#kw')
+
+# 根据 Xpath 获取元素：
+button = browser.find_element(By.XPATH, '//\*\[@id="kw"]')  # chrome中可以复制完整XPATH，XPATH和完整XPATH效果是不同的，不能用后者
+
+button.send_keys('沼科所周雷')  # 只有By.TAG_NAME这个方法运行不成功，其他都能运行成功
+By.XPATH 这个方法的效果稳定性更好
+
+
+地图按钮html代码： 
+&lt;a href="http://map.baidu.com" target="_blank"&gt;地图&lt;/a&gt;
+
+# 根据节点的text获取元素：
+button = browser.find_element(By.LINK_TEXT, '地图')  # 这里的text一般就是网页中按钮链接显示的文字
+</code></pre>
+<ol start="4">
+<li>语法细节</li>
+</ol>
+<pre><code>button.send_keys()  # 在输入区域，输入文字或者上传文件
+button.click()  # 模仿鼠标的点击
+button.submit()  # 回车查询
+
+find_element() 返回单个元素，click、send_keys、submit需要基于此，不能基于返回的列表
+find_elements() 返回匹配的元素列表
+    
+返回元素结果示例：
+&lt;selenium.webdriver.remote.webelement.WebElement (session="5ba52343ec721ee1bd0c194299b49508", element="f.292A6011718F91B61A919A9CA8FC28F5.d.9931B474422731D0A7F4644E8804A703.e.25")&gt;
+</code></pre>
+<ol start="5">
+<li><strong>有时候元素在iframe中，需要先切换到元素所在的iframe，然后才能定位元素</strong></li>
+</ol>
+<p>iframe是一个嵌套框架，要切换到元素所在的最内层iframe。<br>
+iframe（内嵌框架）是 HTML中一种用于将一个网页嵌入到另一个网页中的标签，它可以在一个页面中显示来自其他页面的内容。<br>
+在网页中，使用<code>&lt;iframe&gt;</code>标签可以将一个网页嵌套在另一个网页中，实现网页间的互联互通。</p>
+<p>平行嵌套：平行iframe，直接进入到相应的iframe，定位相应的元素。<br>
+多层嵌套：嵌套iframe，逐层进入元素所在的iframe，定位相应的元素，退出时需要逐层退出。</p>
+<p>检查页面代码，最下面会给出元素的层级结构，可以方便找出元素属于哪些iframe。</p>
+<pre><code># 使用 Selenium 中的 switch_to.frame() 方法切换到元素所在的最内层iframe：
+frame = browser.find_element(By.ID, "ptlogin_iframe")  # By.ID, By.NAME, By.XPATH等上述7种都可以用
+browser.switch_to.frame(frame)
+或
+browser.switch_to.frame("iframe_ID")
+或
+browser.switch_to.frame("iframe_name")
+
+# 从子frame切回到父frame
+browser.switch_to.parent_frame()  # 如果当前已是主文档，则无效果
+
+# 切到iframe中之后，我们便不能继续操作主文档的元素，这时如果想操作主文档内容，则需切回主文档
+browser.switch_to.default_content()  # 切换到主文档中
+</code></pre>
+</div>
+</body>
+
+</html>
